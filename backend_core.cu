@@ -194,7 +194,7 @@ __global__ void forward_only_pure_algebraic_kernel(
     const uint32_t global_idx = blockIdx.x * blockDim.x + thread_idx;
 
     
-       // [🛡️ GARBAGE MASKING CORE INTEGRATION]
+    // [🛡️ GARBAGE MASKING CORE INTEGRATION]
     // [KR] 1단계-A에서 선언한 ALLOCATED_SHARED_MEM_SIZE(+1 여유 자산) 규격으로 강제 컴파일 락킹
     //      유효 패딩 영역 바깥의 마지막 슬롯(GARBAGE_IDX)이 유휴 스레드들의 쓰레기 데이터 사격 장소로 동결됩니다.
     // [EN] Enforces static compiler-locking using the ALLOCATED_SHARED_MEM_SIZE (+1 buffer asset) specification.
@@ -208,7 +208,7 @@ __global__ void forward_only_pure_algebraic_kernel(
 
 
     
-          // [🚀 HIGH-SPEED INGRESS BUS & FIRST-LINE SILICON FIREWALL]
+    // [🚀 HIGH-SPEED INGRESS BUS & FIRST-LINE SILICON FIREWALL]
     // [KR] 전체 격자 크기 경계 안쪽일 때만 글로벌 메모리 버스 인입 전개
     // [EN] Executes global memory bus ingestion exclusively within total cell boundary constraints
     if (global_idx < total_cells) {
@@ -227,7 +227,7 @@ __global__ void forward_only_pure_algebraic_kernel(
     }
 
 
-       // 2. [🛡️ 100% BRANCHLESS INDEX MASKING - SHARED MEMORY HALO INGESTION]
+    // 2. [🛡️ 100% BRANCHLESS INDEX MASKING - SHARED MEMORY HALO INGESTION]
     // [KR] 2. 100% 무분기(Branchless) 인덱스 매스킹 기반 공유 메모리 헤일로 로드 구역
     //      자신의 스레드 위치에 매칭되는 정적 공유 메모리 오프셋 산정 (0번 슬롯 비워두고 1번부터 인입)
     // [EN] 2. 100% Branchless Index Masking-driven Shared Memory Halo Ingestion Zone
@@ -249,7 +249,7 @@ __global__ void forward_only_pure_algebraic_kernel(
 
 
 
-        // =====================================================================================
+    // =====================================================================================
     // [⚡ GLOBAL RE-LOAD ZERO & ZERO-FLAG MASKING CORE]
     // =====================================================================================
     // [KR] 전역 메모리를 또 찌르지 말고, "이미 로드 후 정제되어 셰어드에 박힌 이전 워프/블록 데이터"를 재활용합니다.
@@ -265,7 +265,7 @@ __global__ void forward_only_pure_algebraic_kernel(
     uint32_t is_absolute_mesh_start = (global_idx == 0);
 
 
-       // [🚀 CONDITIONAL BOUNDARY ASSIGNMENT VIA SILICON MUX]
+    // [🚀 CONDITIONAL BOUNDARY ASSIGNMENT VIA SILICON MUX]
     // [KR] 전체 유동 관로의 절대 시작점(global_idx == 0)일 때는 청정 베이스라인(0.0f)을 강제 주입하고,
     //      그 외의 다른 일반 블록들의 0번 스레드들은 앞 블록이 정적 동기화 완료해 둔 좌측 격자 공간을 상속합니다.
     // [EN] Forces a hard injection of CLEAN_BASELINE_VAL (0.0f) at the absolute origin of the fluid mesh (global_idx == 0);
@@ -294,7 +294,7 @@ __global__ void forward_only_pure_algebraic_kernel(
 
 
     
-       // =====================================================================================
+    // =====================================================================================
     // [⚡ GLOBAL RE-LOAD ZERO & ZERO-FLAG MASKING RIGHT ATTRACTOR]
     // =====================================================================================
     // [KR] 전체 격자의 물리적 끝단(global_idx == total_cells - 1)인지 판별하는 제로 플래그 가드 구축
@@ -323,7 +323,7 @@ __global__ void forward_only_pure_algebraic_kernel(
     shared_flux[right_target_idx] = real_right_mesh_val;
 
 
-       // [🛡️ STATIC BLOCK BARRIER & PIPELINE THREAD INSURANCE]
+    // [🛡️ STATIC BLOCK BARRIER & PIPELINE THREAD INSURANCE]
     // [KR] 블록 내 공유 메모리 인입 데이터 경합(Race Condition) 방지를 위한 하드웨어 실행 배리어 가동
     // [EN] Activates the hardware execution barrier to prevent data race conditions across the shared scratchpad footprint
     __syncthreads();
@@ -355,7 +355,7 @@ __global__ void forward_only_pure_algebraic_kernel(
 
 
 
-         // 4. [📐 MATHEMATICAL FLUID GEOMETRY & ALGEBRAIC CO-DESIGN]
+    // 4. [📐 MATHEMATICAL FLUID GEOMETRY & ALGEBRAIC CO-DESIGN]
     // [KR] 4. 수리 물리 기하학 공식 연산 및 1:1 대수적 매핑
     //      공간 차분 편차 도출 수식 실현: U = East - West
     //      단 한 번의 글로벌 로드 이후 오직 레지스터와 셰어드로만 완성된 초고속 물리 필드입니다.
@@ -373,7 +373,7 @@ __global__ void forward_only_pure_algebraic_kernel(
     float normalized_gradient = spatial_deviation_u * RECIPROCAL_CELL_LUT[target_lut_idx];
 
 
-       // 5. [🚀 FINAL BUS COMMIT - IN-PLACE HARDWARE WRITE-BACK]
+    // 5. [🚀 FINAL BUS COMMIT - IN-PLACE HARDWARE WRITE-BACK]
     // [KR] 5. 동기화 하드웨어 배열 최종 상태 확정 커밋 (In-place Write-Back)
     //      원본 입력 데이터 스트림에 하드웨어 폭사 결함이 찍혀있었다면, 
     //      상위 JAX/XLA 방화벽이 이를 포획할 수 있도록 최종 출력 필드에 -99.0f 에러 시그니처 마커를 영구 각인합니다.
