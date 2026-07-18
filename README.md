@@ -1,5 +1,9 @@
 ## 🏗️ 5-Tier Full-Stack System Architecture
 
+### 왜 LLM은 기억을 쌓아둘까요? 자극이 오면 앞으로만 흘려보내며, 스스로 평형을 맞추는 생물학적 생존 방식으로 만들지 못하는 걸까요? 역전파(Backprop)가 없는 딥러닝 체계의 청사진을 만들어봤습니다
+
+---
+
 ### 자동 미분 그래프 생성을 최소화하는 '순수 순방향 물리 합성 신경망 (Forward-Only Autograd-Free PINN)'
 
 현대 딥러닝은 백프로퍼게이션(Backpropagation)을 통해 연산 그래프가 $O(N^2)$로 누적되어 상당한 VRAM을 소모하며, 불연속적 데이터 입력 시 수치 폭발(NaN/INF)이 발생하는 제약이 있습니다.
