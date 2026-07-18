@@ -38,13 +38,14 @@ Consequently, this system scales down macro VRAM consumption to approximately 1/
 * **Physical address-line zero-copy transport pipeline (Zero-Copy Forwarding)**
   * **Eliminating PCIe contention**: Leverages `pybind11` alongside the global accelerator tensor binding specification `__cuda_array_interface__` v3 to structurally enforce a 0ns physical data transport tunnel, dropping host-device (H2D/D2H) replication overhead and PCIe bus bandwidth contention to absolute zero.
   * **Instruction cache cold routing**: Embeds C++20 `[[unlikely]]` branch protection gates along the data ingress track, isolating exceptional fault-handling assembly out of the instruction cache's hot path to flatten conditional CPU pipeline stall overheads.
-* **4-channel independent SoA offset decomposition (Strides = 32 Channel Freezing)**
-  * **Defensive layout freezing**: Restructures the layout at the bare-metal byte offset level into 4 independent channel dictionaries (`param_w`, `spatial_u`, `spatial_v`, `adaptive_gain`) to conservatively protect against arbitrary layout manipulation (Transpose/Re-stride) or runtime slicing overheads within the high-level JAX/XLA compiler.
-  * **Memory bus hardware skipping**: Decomposes discrete single-precision floating-point byte offsets directly from the physical base address line—`ptr_w (+0)`, `ptr_sp_u (+4)`, `ptr_sp_v (+8)`, and `ptr_gain (+12)`—locking the layout stride vector to exactly `sizeof(PinnCell32) = 32`. This forces the accelerator memory bus to skip-jump over residual 16-byte metadata and cache padding segments, streaming only clean floating-point components at peak hardware velocity.
+* **6-channel independent SoA offset decomposition (Strides = 32 Channel Freezing)**
+  * **Defensive layout freezing**: Restructures the layout at the bare-metal byte offset level into 6 independent channel dictionaries (`param_w`, `spatial_u`, `spatial_v`, `adaptive_gain`, `cell_status`, `coordinate_id`) to conservatively protect against arbitrary layout manipulation (Transpose/Re-stride) or runtime slicing overheads within the high-level JAX/XLA compiler.
+  * **Memory bus hardware skipping**: Decomposes discrete single-precision floating-point and unsigned integer byte offsets directly from the physical base address line—`ptr_w (+0)`, `ptr_sp_u (+4)`, `ptr_sp_v (+8)`, `ptr_gain (+12)`, `ptr_status (+16)`, and `ptr_coord (+20)`—locking the layout stride vector to exactly `sizeof(PinnCell32) = 32`. This forces the accelerator memory bus to skip-jump over the residual 8-byte cache padding segment, streaming only clean floating-point and tracking components at peak hardware velocity.
 * **Python garbage collector asynchronous insulation (Empty Deleter Lifecycle Fence)**
   * **Neutralizing runtime jitter**: Relinquishes physical hardware asset lifecycle management entirely to the low-level silicon layer, operating a custom `py::capsule` lifetime fence equipped with an empty lambda deleter to block asynchronous memory-deallocation interrupts or stop-the-world runtime jitter from the Python Garbage Collector (GC).
 * **Compile-time static layout verification (Compile-Time Sanity Firewall)**
   * **Pre-emptive fault intercept**: Explicitly deploys C++20 `static_assert` directives at the compiler stage to guarantee structural footprints hit exactly 32 bytes and physical memory bus boundaries anchor precisely on 32-byte alignments. This eliminates risks of physical layout packing drift or memory segmentation faults (`SegFault`) during high-level in-place transformations.
+
 
 
 ---
@@ -81,7 +82,8 @@ Consequently, this system scales down macro VRAM consumption to approximately 1/
 * **Virtual address-line routing redirection and live hardware hot-plugging**
   * **Zero-power standby isolation**: Constructs an isolated emergency backup node pool (default `cold_standby_pool_size = 5`) where physical host accelerator rails are kept completely unpowered while pre-locking their raw memory address topologies.
   * **Dynamic pointer offset hot-swapping**: Triggers an instantaneous, cascading pointer offset substitution inside the Python runtime environment upon capturing a weight-profile corruption interrupt, executing live re-routing matrix updates (`active_hardware_backup_routes`) with a true 0ns physical memory reallocation profile.
-  * **Symmetric telemetry telemetry backhaul**: Ingests nominal feedback keys (`1.0` SYSTEM RECOVERY KEY) the exact moment the underlying neural core completes autonomous algebraic homeostatic alignment, routing real-time recovery status across the 4 independent SoA channels (`param_w`, `spatial_u`) back to the Human-Machine Interface (HMI) console.
+  * **Symmetric telemetry backhaul**: Ingests nominal feedback keys (`1.0` SYSTEM RECOVERY KEY) the exact moment the underlying neural core completes autonomous algebraic homeostatic alignment, routing real-time recovery status across the 6 independent SoA channels (`param_w`, `spatial_u`, `spatial_v`, `adaptive_gain`, `cell_status`, `coordinate_id`) back to the Human-Machine Interface (HMI) console.
+
 
 ---
 
@@ -271,14 +273,15 @@ Via this public open-source release, the aforementioned vertically integrated me
 * **물리 주소선 기반의 제로카피 수송 파이프라인 (Zero-Copy Forwarding)**
   * `pybind11` 및 글로벌 가속기 텐서 바인딩 표준 규격인 `__cuda_array_interface__` v3를 활용하여, 호스트-디바이스(H2D/D2H) 간의 물리적 데이터 복사 오버헤드와 PCIe 대역폭 점유율을 제로(0) 수준으로 낮추는 경로를 탐색했습니다.
   * 데이터 인입 경로 상에 C++20 `[[unlikely]]` 경계 보호 게이트를 임베딩하여, 예외 처리 어셈블리 코드를 명령어 캐시의 핫 패스 바깥으로 격리함으로써 CPU 파이프라인 스톨 오버헤드를 평탄화하고자 했습니다.
-* **4채널 독립 SoA 오프셋 분해 및 보폭 제안 (Strides = 32 Channel Freezing)**
-  * 상위 JAX/XLA 컴파일러 단의 임의적인 레이아웃 변형(Transpose/Re-stride) 및 슬라이싱 오버헤드를 보수적으로 방어하고자, 하부 물리 바이트 오프셋 레벨에서 4개의 독립된 채널 딕셔너리(`param_w`, `spatial_u`, `spatial_v`, `adaptive_gain`)로 구조를 분해했습니다.
-  * 기저 주소선으로부터 단정밀도 부동소수점 필드들의 바이트 오프셋 가산 라인인 `ptr_w (+0)`, `ptr_sp_u (+4)`, `ptr_sp_v (+8)`, `ptr_gain (+12)`을 개별 분해하고, 다음 원소 스캔 오프셋 보폭(Strides)을 구조체 전체 크기인 `sizeof(PinnCell32) = 32`로 고정 결착시켜 가속기 메모리 버스가 16바이트 제어 및 패딩 영역을 물리적으로 스킵 점프하며 효율적으로 float 성분만 참조할 수 있도록 유도했습니다.
+* **6채널 독립 SoA 오프셋 분해 및 보폭 제안 (Strides = 32 Channel Freezing)**
+  * 상위 JAX/XLA 컴파일러 단의 임의적인 레이아웃 변형(Transpose/Re-stride) 및 슬라이싱 오버헤드를 보수적으로 방어하고자, 하부 물리 바이트 오프셋 레벨에서 6개의 독립된 채널 딕셔너리(`param_w`, `spatial_u`, `spatial_v`, `adaptive_gain`, `cell_status`, `coordinate_id`)로 구조를 분해했습니다.
+  * 기저 주소선으로부터 단정밀도 부동소수점 및 uint32 필드들의 바이트 오프셋 가산 라인인 `ptr_w (+0)`, `ptr_sp_u (+4)`, `ptr_sp_v (+8)`, `ptr_gain (+12)`, `ptr_status (+16)`, `ptr_coord (+20)`을 개별 분해하고, 다음 원소 스캔 오프셋 보폭(Strides)을 구조체 전체 크기인 `sizeof(PinnCell32) = 32`로 고정 결착시켜 가속기 메모리 버스가 잔여 8바이트 캐시 패딩 영역을 물리적으로 스킵 점프하며 효율적으로 float 및 제어 성분만 최속으로 참조할 수 있도록 유도했습니다.
 * **파이썬 가비지 컬렉터 간섭 절연 가드 (Empty Deleter Lifecycle Fence)**
   * 물리 하드웨어 자원의 메모리 수명 주기를 하부 로우레벨 영역에 일임하고, 파이썬 가비지 컬렉터(GC)의 비동기적 수거 시도로 인한 미세한 런타임 지터(Stop-the-world) 진입을 방지하고자 빈 디리터(Empty Deleter) 람다가 포함된 커스텀 캡슐 펜스를 적용해 보았습니다.
 * **컴파일 타임 정적 사양 검증 구조 (Compile-Time Sanity Firewall)**
   * C++20 표준 `static_assert` 명세를 명시적으로 도입하여 `PinnCell32` 구조체의 크기가 정확히 32바이트를 만족하는지, 정렬(Alignment) 규격이 어긋나지 않았는지 빌드 단계에서 엄격히 검증하도록 유도했습니다.
   * 이를 통해 상위 가속 프레임워크가 인플레이스(In-place) 조작을 가할 때 일어날 수 있는 물리 레이아웃 뒤틀림 및 세그멘테이션 폴트(SegFault) 위험성을 사전에 방어하고자 노력했습니다.
+
 
 
 
@@ -317,7 +320,7 @@ Via this public open-source release, the aforementioned vertically integrated me
 * **가상 주소선 리다이렉션 및 핫플러깅 (Cold Standby Address Hot-Swapping)**
   * 상시 전력 소모를 차단한 채 물리 주소선만 락킹해 둔 `Cold Standby` 예비 가속기 노드 토폴로지 맵(기본 `cold_standby_pool_size = 5`)을 설계하여 비상 인프라 풀을 확보했습니다.
   * 가중치 프로파일 훼손 인터럽트 적출 즉시 파이썬 단의 포인터 오프셋 교체(Hot-swap)와 함께 라이브 비상 라우팅 맵(`active_hardware_backup_routes`)을 갱신하는 연쇄 유도를 감행했습니다.
-  * 한편 가중치가 자율 대수 정정을 완료하는 순간 정성 플러그 신호인 `1.0` (SYSTEM RECOVERY KEY)을 역으로 수입하여 `param_w(중심 유동장)`, `spatial_u(동서 구배)` 등 4대 독립 채널의 정상 위상 복구 여부를 인간-기계 인터페이스(HMI) 관제에 안전하게 직송하는 메커니즘 가이드라인을 정립했습니다.
+  * 한편 가중치가 자율 대수 정정을 완료하는 순간 정성 플러그 신호인 `1.0` (SYSTEM RECOVERY KEY)을 역으로 수입하여 `param_w(중심 유동장)`, `spatial_u(동서 공간 차분)`, `spatial_v(남북 공간 차분)`, `adaptive_gain(적응형 이득)`, `cell_status(방화벽 상태)`, `coordinate_id(고유 기하 좌표)` 등 6대 독립 채널의 정상 위상 복구 여부를 인간-기계 인터페이스(HMI) 관제 콘솔에 안전하게 직송하는 메커니즘 가이드라인을 정립했습니다.
 
 
 ---
