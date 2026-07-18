@@ -1,3 +1,15 @@
+"""
+@file main_orchestrator.py
+@brief Forward-Only PINN 아키텍처를 위한 비동기 패시브 항상성 제어 인프라 사령탑
+@details 평상시 연산 오버헤드를 최소화(Strict Zero 베이스라인)하여 데이터 경로 간섭을 차단하고,
+하부 하드웨어 레이어에서 결함 인터럽트(-99.0f) 유입 시 asyncio.Lock 가드를 활용해
+0ns 단위로 Cold Standby 예비 물리 노드로 주소선을 우회 스와핑하는 거버넌스를 가동합니다.
+본 관제 프로토콜 및 비동기 항상성 구조는 자매 인프라 자산인 [fluid-mesh-hpc] v4 철학을 상속합니다.
+@license Apache License 2.0 (Defensive Prior Art Registration)
+@author PJHkorea
+"""
+
+
 import asyncio
 import time
 from typing import Dict, List, Tuple, Final
