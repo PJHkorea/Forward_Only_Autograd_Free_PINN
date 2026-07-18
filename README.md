@@ -107,7 +107,7 @@ graph TD
     %% 노드 정의
     INPUT["📥 INPUT STREAM <br> 수치해석 격자점 데이터 스트림 실시간 인입"]:::inputStyle
 
-    subgraph L1 [1. Bare-Metal CUDA Kernel]
+    subgraph L1 ["1. Bare-Metal CUDA Kernel"]
         L1_Core["격자 공간 구배 적출 레이어"]
         L1_1["Warp Shuffle Intrinsic 및 공유 메모리 패딩<br>(전역 메모리 참조 지연 완화)"]
         L1_2["Constant 메모리 LUT 기반 역수 추출<br>(RECIPROCAL_CELL_LUT 단일 사이클 곱셈 전환)"]
@@ -115,7 +115,7 @@ graph TD
     end
     style L1 fill:#1a202c,stroke:#4a5568,color:#fff
 
-    subgraph L15 [1.5 C++ Interlock Bridge]
+    subgraph L15 ["1.5 C++ Interlock Bridge"]
         L15_Core["제로카피 VRAM 터널링 레이어"]
         L15_1["pybind11 & __cuda_array_interface__ v3<br>(물리 주소선 기반 0ns 수송 파이프라인)"]
         L15_2["4채널 독립 SoA 오프셋 분해 ptr_w(+0) ~ ptr_gain(+12)<br>(sizeof(PinnCell32)=32 및 strides=32 컴파일러 최적화)"]
@@ -123,7 +123,7 @@ graph TD
     end
     style L15 fill:#1a202c,stroke:#4a5568,color:#fff
 
-    subgraph L2 [2. Autograd-Insulated JAX Core]
+    subgraph L2 ["2. Autograd-Insulated JAX Core"]
         L2_Core["대수적 위상 자율 정렬 레이어"]
         L2_1["lax.stop_gradient 격리막 초입 기폭 / trigger_system_warmup<br>(enforce_algebraic_safety_gate 수치 정화 및 0MB JIT 지터 완전 제거)"]
         L2_2["교차축 컬 반전 curl_inverted_u/v 및 점성 브레이크 항 결합<br>(SIGMA_DISSIPATION 스케일 동결 기반 수치 발산 제어)"]
@@ -132,11 +132,11 @@ graph TD
     end
     style L2 fill:#1a202c,stroke:#4a5568,color:#fff
 
-    subgraph L3 [3. Asynchronous Infrastructure Governance]
-        L3_Core["분산 노드 거버넌스 사령탑<br>(hardware_marker_signal == 0.0 평상시 부하 최소화 격리)"]
+    subgraph L3 ["3. Asynchronous Infrastructure Governance"]
+        L3_Core["분산 노드 거버넌스 사령탑<br>(hardware_marker_signal 정밀 제어 및 평상시 부하 최소화)"]
         L3_1["CATASTROPHIC_FAULT 결함 인터럽트 신호 포획<br>(-99.0f 하드웨어 폴트 마커 비동기 핀포인트 스캔)"]
         L3_2["infrastructure_atomic_lock Mutex 가드 작동<br>(hardware_health_registry 자원 할당 경합 상태 원자적 제어)"]
-        L3_3["Cold Standby 예비 물리 노드 및 active_hardware_backup_routes<br>(SYSTEM_RECOVERY_KEY=1.0 동기화 기반 비상 주소선 핫스왑 제어)"]
+        L3_3["Cold Standby 예비 물리 노드 및 active_hardware_backup_routes<br>(SYSTEM_RECOVERY_KEY 동기화 기반 비상 주소선 핫스왑 제어)"]
     end
     style L3 fill:#2d1a2c,stroke:#684a65,color:#fff
 
@@ -151,14 +151,13 @@ graph TD
     L2_Core --> L2_1 --> L2_2 --> L2_3 --> L2_4
     
     %% 제어 및 예외 흐름
-    L1_3 -. 하드웨어 결함 모니터링 .-> L3_1
-    L2_4 -. 수치 예외 모니터링 .-> L3_1
+    L1_3 -. "하드웨어 결함 모니터링" .-> L3_1
+    L2_4 -. "수치 예외 모니터링" .-> L3_1
     
     L3_1 --> L3_2 --> L3_3
     
     L2_4 --> OUTPUT
-    L3_3 -. 예비 물리 자원 라우팅 .-> OUTPUT
-
+    L3_3 -. "예비 물리 자원 라우팅" .-> OUTPUT
 
 ```
 
