@@ -1,5 +1,7 @@
 # Forward_Only_Autograd_Free_PINN
 
+
+```text
 [INPUT DATA] ➔ 물리 격자점 관로 인입
       │
       ▼
@@ -25,3 +27,4 @@
       │  - 오토그라드 역전파 없이 가중치 텐서에 변위 벡타를 직접 전사(In-place Update)
       ▼
 [OUTPUT / NEW WEIGHTS] ➔ 0ns 무중단 항상성 제어 완결
+```
