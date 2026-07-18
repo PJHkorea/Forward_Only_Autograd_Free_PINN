@@ -1,5 +1,14 @@
 # Forward_Only_Autograd_Free_PINN
 
+미분 역학을 소멸시키는 '순수 순방향 물리 합성 신경망 (Forward-Only Autograd Free PINN)'현재의 딥러닝 아키텍처는 모델을 학습시키기 위해 순방향 연산(Forward) 후, 역방향(Backward)으로 미분 그레디언트를 흘려보내는 백프로퍼게이션(Backpropagation)을 수행합니다. 이 과정에서 거대한 연산 그래프가 생성되어 엄청난 VRAM 메모리를 소모하고 수치 폭발(NaN)이 일어납니다.
+
+- fluid-mesh-hpc에서 행렬 연산 없이 격자점 편차만으로 위상 필드를 완성한 수리 물리 기믹의 응용.
+- 패러다임의 혁신:미분 없는 자율 가중치 조절: 자동 미분 체인 자체를 폐기합니다. 
+- 모델 내부에 고장 마커나 예외 수치가 유입되면, 오토그라드 룰을 타는 대신 jax.lax.stop_gradient 방화벽을 역이용해 
+역방향 미분 경로를 완전히 차단(Autograd Insulated)합니다.그 후, 유동 상태의 공간 편차 통계량(U = East - West)과 
+교차축 컬 반전(Cross-Axis Curl Inversion) 수식을 활용하여, 입력 데이터가 모델을 한 번 관통(Forward-Only)하는 찰나의 순간에 
+가중치 텐서가 물리 법칙에 맞춰 스스로를 대수적으로 재정렬하게 만듭니다. 
+- 결과적으로 학습에 필요한 VRAM 소모량이 기존 대비 1/1000 수준으로 증발하는 PINN 아키텍처를 목적으로 해보았습니다
 
 ```text
 [INPUT DATA] ➔ 물리 격자점 관로 인입
