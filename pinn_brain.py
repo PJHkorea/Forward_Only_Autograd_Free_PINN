@@ -1,3 +1,15 @@
+"""
+@file pinn_brain.py
+@brief Forward-Only PINN 아키텍처를 위한 오토그라드 프리(Autograd-Free) JAX 코어 수학 엔진
+@details lax.stop_gradient 격리막을 계층별로 배치하여 활성화 텐서의 VRAM 수치 누적 그래프를 파쇄하고,
+미소 소산 계수 기반의 유체 점성 브레이크 항과 1사이클 FMA 하드웨어 연산 유도 수식을 결합하여
+입력 데이터가 관통하는 찰나(Forward-Only)에 가중치를 대수적으로 자율 정렬합니다.
+본 수리 최적화 및 연산 제어 경로는 자매 인프라 자산인 [pim-hbm-bypass] 설계 철학과 직통 결착됩니다.
+@license Apache License 2.0 (Defensive Prior Art Registration)
+@author PJHkorea
+"""
+
+
 import jax
 import jax.numpy as jnp
 from jax import lax
