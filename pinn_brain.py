@@ -20,7 +20,8 @@
 
 import jax
 import jax.numpy as jnp
-import functools  # [보정] 클래스 단 staticmethod 데코레이터 구동용 명시적 인입 완료
+import numpy as np  # [보정] 하부 generate_viscous_burgers_telemetry 내 np.arange 폭사 방지용 수입 완공
+import functools    # 클래스 단 staticmethod 데코레이터 구동용 명시적 인입 완료
 from typing import Final, Dict, Any
 
 # [⚙️ PLATFORM SYNCHRONIZED SECTOR MATRIX CONFIGURATIONS]
@@ -51,7 +52,6 @@ MEMORY_LAYOUT_REGISTRY: Dict[str, jax.ShapeDtypeStruct] = {
     "cell_status":   jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.uint32),
     "coordinate_id": jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.uint32)
 }
-
 
 
 class ForwardOnlyPinnBrain:
@@ -88,8 +88,7 @@ class ForwardOnlyPinnBrain:
         return jax.lax.stop_gradient(clean_telemetry)
 
 
-
-               @staticmethod
+        @staticmethod
     @jax.jit
     def extract_spatial_gradient_field(master_channels: dict) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
         """
@@ -105,7 +104,7 @@ class ForwardOnlyPinnBrain:
         discrepancy_v   = jax.lax.stop_gradient(master_channels["spatial_v"])      # 남북 구배 성분 (CUDA 정제 완료)
         adaptive_gain   = jax.lax.stop_gradient(master_channels["adaptive_gain"])  # 가중치 이득 변수 절연 통과
 
-        # [보정] 1-2단계에서 리팩토링 동결된 정수형 제어 및 기하 좌표 필드 2종도 미분 절연막을 쳐서 안전하게 수입 통과
+        # 1-2단계에서 리팩토링 동결된 정수형 제어 및 기하 좌표 필드 2종도 미분 절연막을 쳐서 안전하게 수입 통과
         cell_status     = jax.lax.stop_gradient(master_channels["cell_status"])
         coordinate_id   = jax.lax.stop_gradient(master_channels["coordinate_id"])
         
@@ -119,7 +118,8 @@ class ForwardOnlyPinnBrain:
         # 절연 수입된 가인(gain) 필드 조각까지 포함하여 융합용 튜플 구조로 직송 반환합니다.
         return spatial_gradient_u, spatial_gradient_v, adaptive_gain, cell_status
 
-    @staticmethod
+
+      @staticmethod
     # [보정] 파이썬 실수인 learning_rate와 vorticity_target이 유입되는 통로를 정적 인자(static_argnums=(3, 4))로 동결하여
     # JIT 컴파일러 단에서의 추적 오버헤드를 소멸시키고, slot-0 버퍼 기증(donate_argnums=(0,))을 통한 VRAM 인플레이스 재생을 강제합니다.
     # 반환 형식 힌트를 상위 런타임 언팩 명세와 일치하도록 3-인자 튜플(tuple[jax.Array, jax.Array, jax.Array])로 정밀 격상 완료
@@ -142,14 +142,12 @@ class ForwardOnlyPinnBrain:
         gradient_v    = jax.lax.stop_gradient(spatial_gradient_v)
         gain_insulated = jax.lax.stop_gradient(adaptive_gain)
 
-        # 1. [🚀 REGISTER VECTOR HOISTING - ELIMINATE VRAM SPILLING]
+        # 1. [🚀 REGISTER VECTOR HOISTING - ELIM인ATE VRAM SPILLING]
         w_u = sovereign_weights[..., 0]
         w_v = sovereign_weights[..., 1]
 
-
-
         
-                 # =====================================================================================
+                      # =====================================================================================
         # 📌 [🔮 THE MASTER TRICK - CROSS-AXIS CURL INVERSION PHYSICAL PARADIGM]
         # =====================================================================================
         # 실시간 가변 가인 필드(gain_insulated)를 다이렉트로 대수 합성합니다.
@@ -189,10 +187,10 @@ class ForwardOnlyPinnBrain:
         )
 
 
-    @staticmethod
+      @staticmethod
     @functools.partial(jax.jit, donate_argnums=(0,))  
     # [🛡️ HARDWARE BUFFER LOCK] 0번 인자 가중치 버퍼의 VRAM 재사용/소모를 최외곽 융합 단계부터 철저히 락킹
-    # 반환 형식 힌트를 상위 런타임 수신 명세와 일치하도록 4-인자 튜플(tuple[jnp.ndarray, jnp.ndarray, jax.Array, jax.Array])로 정밀 격상 완료
+    # 반환 형식 힌트를 상위 런타임 수신 명세와 일치하도록 4-인자 튜플로 정밀 격상 완료
     def _fused_xla_update_step(
         sovereign_weights: jnp.ndarray,
         master_channels: dict,
@@ -240,7 +238,8 @@ class ForwardOnlyPinnBrain:
 
 
 
-             def update_brain_intelligence(self, master_channels: dict) -> tuple[jnp.ndarray, float, jax.Array, jax.Array]:
+
+              def update_brain_intelligence(self, master_channels: dict) -> tuple[jnp.ndarray, float, jax.Array, jax.Array]:
         """
         [GLOBAL ENTRY POINT] 
         상위 프레임워크 및 외부 시뮬레이터 인터페이스 연동 레이어
@@ -276,6 +275,7 @@ class ForwardOnlyPinnBrain:
 
 
 
+
 # [📐 HIGH-FIDELITY NON-LINEAR CFD TESTBED TELEMETRY PROFILER]
 # [🚀 점성 버거스 방정식의 해석적 솔루션 프로파일 생성기]
 def generate_viscous_burgers_telemetry(num_points: int, time_t: float, viscosity: float = 0.01) -> dict:
@@ -297,23 +297,24 @@ def generate_viscous_burgers_telemetry(num_points: int, time_t: float, viscosity
     # 2. [🚀 6-CHANNEL SoA PACKET STREAM GENERATION - BUS SYMMETRY]
     # C++ bridge_wrapper.cpp 6채널 확장 스펙 및 MEMORY_LAYOUT_REGISTRY와 완벽하게 1:1 도킹 결착 완공
     master_channels = {
-        # [파트 A: 리틀엔디언 32비트 단정밀도 부동소수점 수학 필드 채널]
+        # [📌 파트 A: 리틀엔디언 32비트 단정밀도 부동소수점 수학 필드 채널]
         "param_w":       jnp.array(u_sol, dtype=jnp.float32),
         "spatial_u":     jnp.array(u_sol * 0.98 + 0.01, dtype=jnp.float32),
         "spatial_v":     jnp.array(u_sol * 1.02 - 0.01, dtype=jnp.float32),
         "adaptive_gain": jnp.ones(num_points, dtype=jnp.float32) * 0.1,
         
-        # [파트 B: C++ 물리 레이아웃과 완벽 일치하는 32비트 부호없는 정수 제어/기하 채널 결착]
+        # [📌 파트 B: C++ 물리 레이아웃과 완벽 일치하는 32비트 부호없는 정수 제어/기하 채널 결착]
         "cell_status":   jnp.zeros(num_points, dtype=jnp.uint32),
         "coordinate_id": jnp.arange(num_points, dtype=jnp.uint32)
     }
 
-    # #추가수정 - 6채널 확장 대응 (물리 폴트 주입부)
+    # [🛡️ 6채널 확장 대응 (물리 폴트 주입부)]
     FAULT_SIGNATURE_VAL = -99.0
     master_channels["spatial_u"] = master_channels["spatial_u"].at[2].set(FAULT_SIGNATURE_VAL)
     master_channels["spatial_v"] = master_channels["spatial_v"].at[num_points-2].set(FAULT_SIGNATURE_VAL)
     
     return master_channels
+
 
 def trigger_system_warmup(ai_brain: ForwardOnlyPinnBrain):
     """
@@ -334,7 +335,7 @@ def trigger_system_warmup(ai_brain: ForwardOnlyPinnBrain):
     }
 
     # [🛡️ AOT COMPILER MACHINE CODE HARD LOCKING]
-    # [보정] 중복 수행되던 .lower() 및 .compile() 트랙을 단일 원자적 패스로 통합 압축 완료
+    # 중복 수행되던 .lower() 및 .compile() 트랙을 단일 원자적 패스로 통합 압축 완료
     # XLA 정적 컴파일 그래프를 기계어 단 캐시에 고정 락킹(Locking)하여 런타임 컴파일 지터를 제거합니다.
     lowered_graph = ai_brain._fused_xla_update_step.lower(
         ai_brain.vorticity_weights, 
@@ -345,6 +346,7 @@ def trigger_system_warmup(ai_brain: ForwardOnlyPinnBrain):
     _ = lowered_graph.compile()
     
     print("[🏰 System Boot] AOT Multi-Channel Kernel Fusion Success. 0ns Jitter Control Loop Stabilized.\n")
+
 
 
 
