@@ -1,3 +1,14 @@
+/**
+ * @file backend_core.cu
+ * @brief Forward-Only PINN 아키텍처를 위한 하드웨어 절연형 무분기 공간 구배 적출 커널 코어
+ * @details 자동 미분(Autograd)을 위한 활성화 캐시 VRAM 누적 그래프를 실리콘 레벨에서 청산하고,
+ * GPU 내부 워프 셔플 인트린직 및 정적 공유 메모리 패딩 존을 통해 1차원 공간 차분을 가속합니다.
+ * 본 하부 물리 격자 구조 및 결함 마커(-99.0f) 규격은 자매 인프라 자산인 [fluid-mesh-hpc] v4 명세를 네이티브 상속합니다.
+ * @license Apache License 2.0 (Defensive Prior Art Registration)
+ * @author PJHkorea
+ */
+
+
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <stdint.h>
