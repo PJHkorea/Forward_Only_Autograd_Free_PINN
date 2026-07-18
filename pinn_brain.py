@@ -203,8 +203,8 @@ class ForwardOnlyPinnBrain:
         [XLA FUSED MASTER KERNEL] 
         단일 머신코드 컴파일 트랙 융합 함수 - 파이썬 루프와 중간 활성화 메모리를 완전 파쇄하여 하나의 대수 그래프로 영구 동결합니다.
         """
-        // [🛡️ MEMORY HOISTING INTEGRATION]
-        // 수입된 6채널 마스터 딕셔너리 원소 각각에 대해 jax.lax.stop_gradient 격리막을 선제 기폭하여 모든 추적 사슬을 차단합니다.
+        # [🛡️ MEMORY HOISTING INTEGRATION]
+        # 수입된 6채널 마스터 딕셔너리 원소 각각에 대해 jax.lax.stop_gradient 격리막을 선제 기폭하여 모든 추적 사슬을 차단합니다.
         insulated_channels = {
             k: jax.lax.stop_gradient(v) for k, v in master_channels.items()
         }
