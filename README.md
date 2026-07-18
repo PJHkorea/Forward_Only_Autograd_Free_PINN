@@ -113,7 +113,7 @@ graph TD
     subgraph L15 ["1.5 C++ Interlock Bridge"]
         L15_Core["Zero-Copy VRAM Tunneling Layer Core"]
         L15_1["pybind11 & __cuda_array_interface__ v3<br>(Physical Address-Line 0ns Forwarding Pipeline)"]
-        L15_2["4-Channel SoA Byte Offset Decomposition ptr_w(+0) to ptr_gain(+12)<br>(sizeof(PinnCell32)=32 & strides=32 Layout Freezing)"]
+        L15_2["6-Channel SoA Byte Offset Decomposition ptr_w(+0) to ptr_coord(+20)<br>(sizeof(PinnCell32)=32 & strides=32 Layout Freezing)"]
         L15_3["Empty Deleter Lifecycle Fence & C++20 static_assert / [[unlikely]]<br>(Python GC Insulation & Instruction Cache Cold Routing)"]
     end
     style L15 fill:#1a202c,stroke:#4a5568,color:#fff
@@ -351,7 +351,7 @@ graph TD
     subgraph L15 ["1.5 C++ Interlock Bridge"]
         L15_Core["제로카피 VRAM 터널링 레이어"]
         L15_1["pybind11 & __cuda_array_interface__ v3<br>(물리 주소선 기반 0ns 수송 파이프라인)"]
-        L15_2["4채널 독립 SoA 오프셋 분해 ptr_w(+0) ~ ptr_gain(+12)<br>(sizeof(PinnCell32)=32 및 strides=32 컴파일러 최적화)"]
+        L15_2["6채널 독립 SoA 오프셋 분해 ptr_w(+0) ~ ptr_coord(+20)<br>(sizeof(PinnCell32)=32 및 strides=32 컴파일러 최적화)"]
         L15_3["Empty Deleter 및 C++20 static_assert / [[unlikely]] 속성<br>(파이썬 GC 간섭 절연 및 명령어 캐시 핫패스 격리)"]
     end
     style L15 fill:#1a202c,stroke:#4a5568,color:#fff
