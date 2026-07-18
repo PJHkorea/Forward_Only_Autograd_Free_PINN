@@ -70,13 +70,17 @@ class MainInfrastructureOrchestrator:
         elif hardware_marker_signal == CATASTROPHIC_FAULT:
             await self.trigger_emergency_hardware_rerouting(node_id, channel_id)
 
-    def _resolve_channel_semantic_name(self, channel_id: int) -> str:
-        """하부 PinnCell32 물리 레지스터 오프셋 필드와 1:1 대응되는 휴먼 가독성 HMI 앨리어싱"""
+       def _resolve_channel_semantic_name(self, channel_id: int) -> str:
+        """
+        [💡 TRUE PHYSICAL ALIASING]
+        하부 PinnCell32 하드웨어 레지스터 및 True Layout Mapping 명세와 
+        단 1비트의 꼬임도 없이 완벽하게 대칭 호환되는 HMI 채널 에일리어싱 명정.
+        """
         semantic_map = {
-            0: "param_w (Weight)",
-            1: "spatial_u (Horizontal Flux)",
-            2: "spatial_v (Vertical Flux)",
-            3: "adaptive_gain (Self-Tuning Variable)"
+            0: "param_w (Primary Flux Field W - 중심 유동장 위상 필드)",
+            1: "spatial_u (East-West Discrepancy - 동서 구배 편차 성분)",
+            2: "spatial_v (North-South Discrepancy - 남북 구배 편차 성분)",
+            3: "adaptive_gain (Decay Field Factor - 자율 소산 제어 계수)"
         }
         return semantic_map.get(channel_id, f"unknown_bus_offset_{channel_id}")
 
@@ -84,7 +88,7 @@ class MainInfrastructureOrchestrator:
         """
         [🔮 INFRASTRUCTURE RECOVERY] Cold Standby 예비 버퍼 기폭 및 물리 핫플러깅
         """
-        # 자원 경쟁 방지를 위한 원자적 컨텍스트 가드 [1.10]
+        # 자원 경쟁 방지를 위한 원자적 컨텍스트 가드
         async with self.infrastructure_atomic_lock:
             # 중복 요청 발생 시 리턴
             if self.hardware_health_registry[(failed_node_id, failed_channel_id)] == "CRITICAL":
@@ -98,12 +102,13 @@ class MainInfrastructureOrchestrator:
                 print("❌ [🚨 EXHAUSTION] No Cold Standby Nodes Left!")
                 return
 
-            # 💤 Cold Standby 노드 기폭 및 라우팅 [1.10]
+            # 💤 Cold Standby 노드 기폭 및 라우팅
             allocated_backup_node_id = self.cold_standby_node_pool.pop(0)
             self.active_hardware_backup_routes[(failed_node_id, failed_channel_id)] = allocated_backup_node_id
 
             print(f" ➔ 💤 [MOBILIZATION] Activated Node [{allocated_backup_node_id}]")
             print(f" ➔ ⛓ [PHYSICAL ENGAGED] Re-routed: {failed_node_id} ➔ {allocated_backup_node_id}")
+
 
     async def execute_supreme_orchestration_loop(self) -> None:
         """
@@ -131,17 +136,18 @@ class MainInfrastructureOrchestrator:
 
 if __name__ == "__main__":
     import sys
-    # ... (상세한 인프라 연동 및 웜업 로그 출력 부분은 
-    #      제공된 [1.10] 및 관련 컨텍스트에 따라 구현된 
-    #      `trigger_system_warmup()` 및 
-    #      `MainInfrastructureOrchestrator` 등을 통해
-    #      JAX 엔진 웜업 및 비동기 파이프라인을 
-    #      최종 구동하는 메인 스크립트)
 
-    # 16개 하드웨어 섹터 관제를 넘어 64개 분산 노드 그리드 사양으로 
-    # 최종 확장 인스턴스화 및 오케스트레이션 루프 실행
+    print("=== [SYSTEM INITIALIZATION] 64-Grid Hardware Sector Monitoring Engaged ===")
+    
+    global_orchestrator = MainInfrastructureOrchestrator(ORCHESTRATOR_CONFIG)
+
+    print(f"[🏰 System Boot] Orchestrator Registry Warm-up Success.")
+    print(f" ➔ Active Surveillance Grid  : {ORCHESTRATOR_CONFIG['total_hardware_nodes']} Nodes")
+    print(f" ➔ Cold Standby Backup Pool  : {ORCHESTRATOR_CONFIG['cold_standby_pool_size']} Nodes\n")
+
+    # 최고 비동기 이벤트 거버넌스 프로토콜 실전 가속 테스트 기폭
     try:
         asyncio.run(global_orchestrator.execute_supreme_orchestration_loop())
     except KeyboardInterrupt:
-        print("\n❌ [🛡 EMERGENCY INTERRUPT] Aborted.")
+        print("\n❌ [🛡️ EMERGENCY INTERRUPT] Supreme Governance Loop Aborted by User.")
         sys.exit(1)
