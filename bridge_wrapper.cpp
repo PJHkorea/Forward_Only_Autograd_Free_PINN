@@ -1,11 +1,13 @@
 /**
  * @file bridge_wrapper.cpp
  * @brief Forward-Only PINN 아키텍처를 위한 제로 카피(Zero-Copy) 디바이스 메모리 바인딩 브릿지
- * @details 호스트-디바이스 간의 무거운 딥 카피 루프를 완전 우회하여, 32바이트로 정렬된 
- * CUDA 통합 하드웨어 레지스터 주소선을 JAX 컴파일러 뷰에 오버헤드 0ns 사양으로 인터록 결합합니다.
- * @license GNU GPLv3 Enforced (Defensive Prior Art Registration)
+ * @details 호스트-디바이스 간의 물리적 데이터 복사 루프를 우회하여, 32바이트로 정렬된 
+ * CUDA 하드웨어 레지스터 주소선을 JAX 컴파일러 뷰에 데이터 전송 오버헤드 0ns 사양으로 인터록 결합합니다.
+ * 본 모듈은 자매 인프라 자산인 [pim-hbm-bypass] 및 [fluid-mesh-hpc] v4와 하부 레이아웃 규격을 공유합니다.
+ * @license Apache License 2.0 (Defensive Prior Art Registration)
  * @author PJHkorea (The Sovereign Architect)
  */
+
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
