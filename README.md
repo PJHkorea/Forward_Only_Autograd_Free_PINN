@@ -1,6 +1,4 @@
-## 🏗️ 5-Tier Full-Stack System Architecture
-
-### Why must Large Language Models continuously stack structural memory graphs? Why can we not architect a deep learning paradigm that mirrors biological survival—one that fluidly streams input perturbations forward while autonomously driving toward internal equilibrium? This repository implements the definitive architectural blueprint for a truly Autograd-free deep learning system.
+## Why must Large Language Models continuously stack structural memory graphs? Why can we not architect a deep learning paradigm that mirrors biological survival—one that fluidly streams input perturbations forward while autonomously driving toward internal equilibrium? This repository implements the definitive architectural blueprint for a truly Autograd-free deep learning system.
 
 ---
 
@@ -232,9 +230,7 @@ Via this public open-source release, the aforementioned vertically integrated me
 
 ---
 
-## 🏗️ 5-Tier Full-Stack System Architecture
-
-### 왜 LLM은 기억을 쌓아둘까요? 자극이 오면 앞으로만 흘려보내며, 스스로 평형을 맞추는 생물학적 생존 방식으로 만들지 못하는 걸까요? 역전파(Backprop)가 없는 딥러닝 체계의 청사진을 만들어봤습니다
+## 왜 LLM은 기억을 쌓아둘까요? 자극이 오면 앞으로만 흘려보내며, 스스로 평형을 맞추는 생물학적 생존 방식으로 만들지 못하는 걸까요? 역전파(Backprop)가 없는 딥러닝 체계의 청사진을 만들어봤습니다
 
 ---
 
