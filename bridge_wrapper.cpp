@@ -5,7 +5,7 @@
  * CUDA 하드웨어 레지스터 주소선을 JAX 컴파일러 뷰에 데이터 전송 오버헤드 0ns 사양으로 인터록 결합합니다.
  * 본 모듈은 자매 인프라 자산인 [pim-hbm-bypass] 및 [fluid-mesh-hpc] v4와 하부 레이아웃 규격을 공유합니다.
  * @license Apache License 2.0 (Defensive Prior Art Registration)
- * @author PJHkorea (The Sovereign Architect)
+ * @author PJHkorea
  */
 
 
