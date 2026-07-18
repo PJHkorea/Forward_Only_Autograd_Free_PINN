@@ -308,46 +308,40 @@ def generate_viscous_burgers_telemetry(num_points: int, time_t: float, viscosity
     }
 
 
-    #추가수정
-        # 3. [🛡️ CATASTROPHE TESTING - PHYSICAL FAULT INJECTION ROUTINE]
-    # [KR] [3] 가혹 환경 검증용 물리 폴트(-99.0f) 주입
-    #      특정 격자 인덱스(2번, 끝에서 2번)의 VRAM 데이터선을 강제로 파손시켜 텔레메트리 안테나 조준 사격 테스트
-    # [EN] 3. Physical Fault (-99.0f) Injection Routine for Extreme Environment Verification.
-    #      Intentionally corrupts precise grid memory slots (Index 2 and End-2) to stress-test high-level telemetry antenna capture rails.
-    FAULT_SIGNATURE = -99.0
-    master_channels["spatial_u"] = master_channels["spatial_u"].at[2].set(FAULT_SIGNATURE)
-    master_channels["spatial_v"] = master_channels["spatial_v"].at[num_points-2].set(FAULT_SIGNATURE)
-    
+       # #추가수정 - 6채널 확장 대응 (물리 폴트 주입부)
+    FAULT_SIGNATURE_VAL = -99.0
+    master_channels["spatial_u"] = master_channels["spatial_u"].at[2].set(FAULT_SIGNATURE_VAL)
+    master_channels["spatial_v"] = master_channels["spatial_v"].at[num_points-2].set(FAULT_SIGNATURE_VAL)
     return master_channels
 
-
 def trigger_system_warmup(ai_brain: ForwardOnlyPinnBrain):
-    """
-    [🚨 CRITICAL INTERLOCK WARMUP] 
-    
-    [KR] 0MB 가상 추상 텐서를 통한 런타임 컴파일 지터(Jitter) 영구 멸종
-    [EN] Permanent Eradication of Runtime Compilation Jitter via 0MB Virtual Abstract Tensors.
-    """
-    print("\n[🏰 System Boot] Fused XLA Autograd-Free Matrix Kernel Warm-up Initiated...")
+    """[🚨 CRITICAL INTERLOCK WARMUP] 0MB 가상 텐서로 Jitter 제거"""
+    print("\n[🏰 System Boot] 6-Channel Fused XLA Warm-up Initiated...")
 
-    
-       # [🛡️ 0MB STATIC TRACER LAYOUT RE-ARRANGEMENT]
-    # [KR] 4채널 SoA 딕셔너리 규격에 맞춰 0MB 추상 가드를 재정렬 빌드합니다.
-    #      실제 디바이스 메모리(VRAM)를 전혀 소모하지 않는 순수 가상 추상 구조체 배열 할당
-    # [EN] Re-aligns and builds 0MB abstract guards to precisely match the 4-channel SoA dictionary specification.
-    #      Allocates pure virtual abstract tracer shapes without spending a single byte of physical device memory (VRAM).
+    # [🛡️ 0MB STATIC TRACER 6채널(SoA) 완전 동기화]
     dummy_channels = {
         "param_w":       jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.float32),
         "spatial_u":     jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.float32),
         "spatial_v":     jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.float32),
-        "adaptive_gain": jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.float32)
+        "adaptive_gain": jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.float32),
+        "cell_status":   jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.uint32),
+        "coordinate_id": jax.ShapeDtypeStruct(shape=(PINN_CONFIG["num_grid_points"],), dtype=jnp.uint32)
     }
+
+    # [🛡️ AOT Compiler Machine Code Lock]
+    lowered_graph = ai_brain._fused_xla_update_step.lower(
+        ai_brain.vorticity_weights, 
+        dummy_channels,
+        PINN_CONFIG["learning_rate"], 
+        PINN_CONFIG["vorticity_target"]
+    )
+    _ = lowered_graph.compile()
+    print("[🏰 System Boot] 6-Channel Sync Success. Jitter Control Stabilized.\n")
+
     
-    # [🛡️ AOT COMPILER MACHINE CODE HARD LOCKING]
+      # [🛡️ AOT COMPILER MACHINE CODE HARD LOCKING]
     # [KR] XLA 정적 컴파일 그래프를 기계어 단 캐시에 고정 락킹(Locking)합니다.
-    #      첫 스텝의 실시간 컴파일(JIT) 레이턴시를 시스템 시동 시점에 미리 완전히 지워버리는 AOT 기믹
     # [EN] Forces static compiler lowering and hard-locks the machine-code graph straight into the 가속기 primitive execution cache.
-    #      An AOT compilation gimmick that radically purges runtime JIT compilation stalls before the first streaming step.
     lowered_graph = ai_brain._fused_xla_update_step.lower(
         ai_brain.vorticity_weights, dummy_channels, 
         PINN_CONFIG["learning_rate"], PINN_CONFIG["vorticity_target"]
@@ -361,31 +355,27 @@ if __name__ == "__main__":
     
     # 1. [🏰 INFRASTRUCTURE DETONATION & AOT COMPILER LOCKING]
     # [KR] 1. 브레인 인스턴스 기폭 및 AOT 예열 컴파일 집행
-    #      0MB 추상 트레이서를 통해 런타임 JIT 지터를 부팅 시점에 선제적 박멸
     # [EN] 1. Brain Instance Detonation & AOT Pre-Warmup Compilation Execution.
-    #      Leverages 0MB virtual abstract tracers to pre-emptively eradicate runtime JIT jitter at the boot boundary.
     ai_brain = ForwardOnlyPinnBrain(PINN_CONFIG)
     trigger_system_warmup(ai_brain)
 
     # 2. [🚀 CFD TELEMETRY STREAM INGESTION LOOP INITIATION]
     # [KR] 2. 실전 버거스 방정식 기반 분산 텔레메트리 스트림 연속 인입 루프 시동
-    #      마이크로초(µs) 단위의 레이턴시 지터가 영구 박멸된 상태에서 초고속 전방 관통 제어 검증
     # [EN] 2. Live Viscous Burgers' Equation CFD Distributed Telemetry Ingestion Loop Launch.
-    #      Verifies ultra-fast forward-only propagation control inside an infrastructure environment where microsecond-scale (µs) latency jitter is permanently neutralized.
     print("[🚀 Execution Path] Launching Passive Homeostasis Control Loop under Viscous Burgers CFD Stream...")
 
-    
     for step in range(5):
         # [KR] 실시간 유체역학 파동 유입 시뮬레이션 데이터 수입
         # [EN] Ingest real-time fluid dynamics wave simulation telemetry data
         live_telemetry_stream = generate_viscous_burgers_telemetry(PINN_CONFIG["num_grid_points"], time_t=step * 0.1)
         
-        # [KR] 0ns 무복사 인입을 거쳐 역전파 없이 대수식으로만 가중치 텐서 즉각 재정렬
-        # [EN] Instantly realign weight tensors using only algebraic equations without backpropagation via 0ns zero-copy ingestion
-        weights, loss = ai_brain.update_brain_intelligence(live_telemetry_stream)
+        # [🛠️ 보정: 4채널 언팩 동기화] - 상위 인터페이스가 반환하는 4대 제어 텐서를 온전하게 패키징 수입합니다.
+        weights, loss, control_out, current_gain = ai_brain.update_brain_intelligence(live_telemetry_stream)
         
-        print(f"Step {step+1:02d} | Dynamic Deviation Equilibrium Loss (잔차 평형): {loss:.8f}")
+        # [🚀 REAL-TIME MONITORING VERIFICATION]
+        print(f"Step {step+1:02d} | Loss (잔차 평형): {loss:.8f} | Mean Gain: {jnp.mean(current_gain):.6f} | Control Power: {jnp.mean(jnp.abs(control_out)):.6f}")
 
     print("\n[🎯 SYSTEM TERMINATED] 100% Branchless fault-insulated self-alignment matrix validated.")
     print("-> VRAM reduction to 1/1000 successfully realized by Pure Forward Viscous Attractor.")
+
 
