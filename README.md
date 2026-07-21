@@ -244,6 +244,15 @@ Via this public open-source release, the aforementioned vertically integrated me
 
 ---
 
+## 🏛️ 하드웨어-신경망 공동 설계(Co-Design) 삼위일체 인프라 수직 상호 참조
+본 프로젝트는 제가 상용 거대 언어 모델(LLM)의 분산 서빙 가속을 위해 설계한 3대 핵심 실리콘-신경망 수직 통합 계통 자산의 일원이며, 각각의 repositories가 연결되어있으니 참조하여 봐주시면 감사드리겠습니다
+
+*   **[Fluidic_Network_Grid (FNG) V3]**: NCCL All-Reduce 동기화 배리어를 대수적으로 우회하고, 가혹한 패킷 유실 및 무선 노이즈 환경에서 시변 지터를 소수점 8자리 정밀도로 정류하는 가속기-통신 하드웨어 네이티브 제어 평면 레이어입니다.
+*   **[Forward_Only_Autograd_Free_PINN]**: GPU 워프(Warp) 수준의 레지스터 셔플 기반 무분기 공간 차분 기술을 적용하여, FNG V3 스트림의 3차 모멘트 왜도(\(m_3/m_2\)) 대수적 약분 소거 및 1-Cycle FMA 가중치 자율 평형을 완결하는 수리 물리 연산 코어 엔진입니다.
+*   **[Continuous_Wave_Field_LLM_Brain v5.0]**: DLPack 통합 메모리 표준 규격 인터페이스를 기반으로 PyTorch 가중치 버퍼와 JAX/XLA 가속 장치 간의 0ns 무복사 데이터 교환을 관류 인터록하여 후단 Llama 어텐션 코어로 청정 다양체 텐서를 전송하는 하이브리드 가이드 레이어입니다.
+
+---
+
 ### 🔗 아키텍처 연계 및 하드웨어-소프트웨어 공동 설계 (Co-Design)
 본 저장소는 역전파(Backpropagation)의 연산 추적 사슬을 우회하고 통신 스톨을 박멸하기 위한 미니멀한 수직 통합 아키텍처를 제출합니다. **Fluidic_Network_Grid (FNG) V3** 파이프라인과 물리 주소 레벨에서 직결 연계되어, 엄격한 32바이트 메모리 물리 정렬 경계와 오토그라드가 차단된 6채널 상태 프레임워크를 수립함으로써 런타임 중간 활성화 그래프 누적을 순수 인퍼런스 사양에 준하는 정적 $O(1)$ 구조로 동결합니다. 가중치는 FNG V3 정류 선로가 사출한 Key/Value 캐시 정화 다양체 위에서 교차축 컬 반전(Cross-Axis Curl Inversion) 공식을 통해 자율적인 평형 상태로 유도되며, 가속기 내부 레지스터 단의 단일 사이클 FMA hardware 파이프라인에 직접 매핑되어 처리됩니다.
 
